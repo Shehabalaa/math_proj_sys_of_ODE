@@ -1,25 +1,28 @@
 import parser
 import numpy as np
 from math import *
-import tabulate
 from sympy import integrate,Symbol
+
 
 dict_to_list = lambda some_dict:[ some_dict[key] for key in sorted(some_dict.keys())]
 round_list = lambda some_list,digits : [round(elem,digits) for elem in some_list]
-euler = lambda x,y,ys,h,eq : y + eval(eq,ys)*h
+euler = lambda y,vars,h,eq : y + eval(eq,vars.copy())*h
 
 def integrator(x,ys,h,xend,eqs,exact_integral_eqs):
     max_err_exact = 0.0
     while(1):
         if(xend -x <h):
             h = xend -x
+        new_ys = ys.copy()
         for i in range(len(eqs)):
-            new_yi = euler(x,ys['y{0}'.format(i)],ys,h,eqs[i])
-            variables = ys.copy();variables['x'] =x+h #use the current x not the previous one
+            variables = ys.copy();variables['x'] =x #use the prev x not the previous one
+            new_y = euler(ys['y{0}'.format(i)],variables,h,eqs[i])
+            variables['x'] =x+h #use the current x not the previous one
             y_exact = eval(exact_integral_eqs[i],variables)
-            err_exact = 100.*(y_exact - new_yi)/y_exact
+            err_exact = 100.*(y_exact - new_y)/y_exact
             max_err_exact = err_exact if(abs(err_exact) > abs(max_err_exact)) else max_err_exact
-            ys['y{0}'.format(i)] = new_yi
+            new_ys['y{0}'.format(i)] = new_y
+        ys.update(new_ys) 
         x=x+h    
         if(x>= xend):
             return max_err_exact,x
@@ -36,7 +39,6 @@ def test_equations(eqs,variables):
 def get_exact_integarl_formula(eq,intial_conditions,func):
     formula = str(integrate(eq,Symbol('x')))
     constant = intial_conditions[func] - eval(formula,intial_conditions)
-    print(formula + ' + ' + str(constant))
     return formula + ' + ' + str(constant) # add constat
 
 def read_input():
@@ -75,6 +77,5 @@ def main():
         if(xi>=xf):
             break
         
-
 if __name__ == "__main__":
     main()

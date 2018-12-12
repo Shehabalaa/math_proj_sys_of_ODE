@@ -1,45 +1,34 @@
-import parser
 import numpy as np
-from math import *
 from sympy import integrate,Symbol
-
+from math import *
 
 dict_to_list = lambda some_dict:[ some_dict[key] for key in sorted(some_dict.keys())]
 round_list = lambda some_list,digits : [round(elem,digits) for elem in some_list]
-euler = lambda y,vars,h,eq : y + eval(eq,vars.copy())*h
+euler = lambda y,vars,h,eq : y + eval(eq,globals(),vars.copy())*h
 
-def integrator(x,ys,h,xend,eqs,exact_integral_eqs):
-    max_err_exact = 0.0
+def integrator(x,ys,h,xend,eqs):
     while(1):
         if(xend -x <h):
             h = xend -x
         new_ys = ys.copy()
         for i in range(len(eqs)):
-            variables = ys.copy();variables['x'] =x #use the prev x not the previous one
+            variables = ys.copy();variables['x'] =x #use the prev x not the curr one
             new_y = euler(ys['y{0}'.format(i)],variables,h,eqs[i])
-            variables['x'] =x+h #use the current x not the previous one
-            y_exact = eval(exact_integral_eqs[i],variables)
-            err_exact = 100.*(y_exact - new_y)/y_exact
-            max_err_exact = err_exact if(abs(err_exact) > abs(max_err_exact)) else max_err_exact
             new_ys['y{0}'.format(i)] = new_y
         ys.update(new_ys) 
         x=x+h    
         if(x>= xend):
-            return max_err_exact,x
+            return x
 
 def test_equations(eqs,variables):
     variables['x']=1
     try:
         for eq in eqs:
-            eval(eq,variables)
+            eval(eq,globals(),variables)
     except:
         print("wrong equations or intial variables")
         exit()
 
-def get_exact_integarl_formula(eq,intial_conditions,func):
-    formula = str(integrate(eq,Symbol('x')))
-    constant = intial_conditions[func] - eval(formula,intial_conditions)
-    return formula + ' + ' + str(constant) # add constat
 
 def read_input():
     n = int(input("Enter number of equations: "))
@@ -58,20 +47,18 @@ def read_input():
     xout = input("show output every step (for default = h press Enter) = ")
     xout = float(xout) if xout != '' else dx
     intial_conditions=ys.copy();intial_conditions['x']=xi
-    exact_integral_eqs = [get_exact_integarl_formula(eqs[i],intial_conditions,'y'+str(i)) for i in range(n)] #to calculate exact error
-    return exact_integral_eqs,eqs,ys,xi,xf,dx,xout
+    return eqs,ys,xi,xf,dx,xout
 
 def main():
     #TODO replace read_input with argument variables or with gui
-    exact_integral_eqs,eqs,ysi,xi,xf,h,xout = read_input() # i for initial and f for final and out for output_interval
-    err_exact = nan
-    result_table = [xi] + dict_to_list(ysi) + [err_exact]
+    eqs,ysi,xi,xf,h,xout = read_input() # i for initial and f for final and out for output_interval
+    result_table = [xi] + dict_to_list(ysi)
     while(1):
         xend = xi + xout
         if(xend > xf):
             xend = xf
-        err_exact,xi = integrator(xi,ysi,h,xend,eqs,exact_integral_eqs) # ysi dictionary is passed by ref
-        new_row = round_list( [xi] + dict_to_list(ysi) + [err_exact],3)
+        xi = integrator(xi,ysi,h,xend,eqs) # ysi dictionary is passed by ref
+        new_row = round_list( [xi] + dict_to_list(ysi),3)
         print(new_row)
         result_table.append(new_row)
         if(xi>=xf):

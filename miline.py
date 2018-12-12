@@ -3,11 +3,11 @@ def predictor(ys,h,xs,eqs):
     for i in range(len(eqs)):
         y_3 = ys[0]['y'+str(i)]
         ys[1]['x'] = xs[1]
-        diff_y_2 = eval(eqs[i],ys[1].copy())
+        diff_y_2 = eval(eqs[i],globals(),ys[1])
         ys[2]['x'] = xs[2]
-        diff_y_1 = eval(eqs[i],ys[2].copy())
+        diff_y_1 = eval(eqs[i],globals(),ys[2])
         ys[3]['x'] = xs[3]
-        diff_y_0 = eval(eqs[i],ys[3].copy())
+        diff_y_0 = eval(eqs[i],globals(),ys[3])
         predictions.append(y_3 + 4./3*h*(2*diff_y_0 - diff_y_1 + 2*diff_y_2))
     return predictions
 
@@ -22,11 +22,11 @@ def corrector(predictions,ys,h,xs,eqs,its):
         for i in range(len(eqs)):
             y_1 = ys[2]['y'+str(i)]
             ys[2]['x'] = xs[2]
-            diff_y_1 = eval(eqs[i],ys[2].copy())
+            diff_y_1 = eval(eqs[i],globals(),ys[2])
             ys[3]['x'] = xs[3]
-            diff_y_0 = eval(eqs[i],ys[3].copy())
+            diff_y_0 = eval(eqs[i],globals(),ys[3])
             ys[4]['x'] = xs[4]
-            diff_y_plus1 = eval(eqs[i],ys[4].copy())
+            diff_y_plus1 = eval(eqs[i],globals(),ys[4])
             predictions[i] = y_1 +1./3*h*(diff_y_1+4*diff_y_0+diff_y_plus1)
             ys[4]['y'+str(i)] = predictions[i]
             print(predictions)
@@ -38,7 +38,7 @@ def test_equations(eqs,variables):
     variables['x']=1
     try:
         for eq in eqs:
-            eval(eq,variables)
+            eval(eq,globals(),variables)
     except:
         print("wrong equations or intial variables")
         exit()

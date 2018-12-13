@@ -1,3 +1,5 @@
+round_list = lambda some_list,digits : [round(elem,digits) for elem in some_list]
+
 def predictor(ys,h,xs,eqs):
     predictions = []
     for i in range(len(eqs)):
@@ -10,18 +12,20 @@ def predictor(ys,h,xs,eqs):
         diff_y_0 = eval(eqs[i],globals(),ys[3])
         predictions.append(y_3 + 4/3*h*(2*diff_y_0 - diff_y_1 + 2*diff_y_2))
     print("Predictions")
-    print(predictions)
+    print(round_list(predictions,5))
     return predictions
 
 
-def corrector(predictions,ys,h,xs,eqs,its):
-    print("\nCorrections")
+def corrector(predictions,ys,h,xs,eqs,its,stopping_err):
+    print("\nCorrections and maximum approximate error %")
     result = []
     tmp={}
     for i in range(len(predictions)):
         tmp['y'+str(i)] = predictions[i]
     ys.append(tmp)
-    for it in range(its):
+    approx_errs = [100.]*len(predictions)
+    it=0
+    while((it<its or its==-1) and (max(approx_errs)>stopping_err or stopping_err==-1)):
         for i in range(len(eqs)):
             y_1 = ys[2]['y'+str(i)]
             ys[2]['x'] = xs[2]
@@ -30,10 +34,14 @@ def corrector(predictions,ys,h,xs,eqs,its):
             diff_y_0 = eval(eqs[i],globals(),ys[3])
             ys[4]['x'] = xs[4]
             diff_y_plus1 = eval(eqs[i],globals(),ys[4])
-            predictions[i] = y_1 +1./3*h*(diff_y_1+4*diff_y_0+diff_y_plus1)
+            new_y =  y_1 +1./3*h*(diff_y_1+4*diff_y_0+diff_y_plus1)
+            approx_errs[i]=(new_y-predictions[i])/new_y*100
+            predictions[i] = new_y
             ys[4]['y'+str(i)] = predictions[i]
-        print(predictions)
-        result.append(predictions)
+        it+=1
+        print(round_list(predictions + [max(approx_errs)],5))
+
+        result.append(predictions + [max(approx_errs)])
     return result
                 
 
@@ -65,14 +73,20 @@ def read_input():
             except: pass
         ys.append(tmp.copy())
     test_equations(eqs,ys[0].copy()) # testing input of equations
-    its = int(input("num of iterations for correction = "))
-    return eqs,ys,xs,h,its
+    its = input("num of iterations for correction (if not defined press Enter) = ")
+    its = int(its) if its != '' else -1
+    stopping_err = input("Presantage of relative stopping error (if not defined press Enter) = ")
+    stopping_err = float(stopping_err) if stopping_err != '' else -1
+    if(its==-1 and stopping_err==-1):
+        print("No stopping criteria defined Set iterations to default 10")
+        its = 10
+    return eqs,ys,xs,h,its,stopping_err
 
 def main():
     #TODO replace read_input with argument variables or with gui
-    eqs,ys,xs,h,its = read_input() # i for initial and f for final and out for output_interval
+    eqs,ys,xs,h,its,stopping_err = read_input() # i for initial and f for final and out for output_interval
     predictions = predictor(ys,h,xs,eqs)
-    result = corrector(predictions,ys,h,xs,eqs,its)
+    result = corrector(predictions,ys,h,xs,eqs,its,stopping_err)
 
 
 if __name__ == "__main__":

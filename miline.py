@@ -17,7 +17,7 @@ def predictor(ys,h,xs,eqs):
 
 
 def corrector(predictions,ys,h,xs,eqs,its,stopping_err):
-    print("\nCorrections and maximum approximate error %")
+    print("Corrections and maximum approximate error %")
     result = []
     tmp={}
     for i in range(len(predictions)):
@@ -62,8 +62,9 @@ def read_input():
     eqs = [input("eq{0}: dy{0}/dx = ".format(i)) for i in range(n)]
     print("\nIntial values for variables")
     h = float(input("step size h = "))
-    xf = float(input("x to solve at = "))
-    xs = [xf-(4-i)*h for i in range(5)]
+    xi = float(input("start form x = "))
+    xf = float(input("till reach x = "))
+    xs = [xi+i*h for i in range(5)]
     ys = []
     for j in range(4):
         tmp={}
@@ -80,13 +81,25 @@ def read_input():
     if(its==-1 and stopping_err==-1):
         print("No stopping criteria defined Set iterations to default 10")
         its = 10
-    return eqs,ys,xs,h,its,stopping_err
+    return eqs,ys,xs,h,its,xf,stopping_err
 
 def main():
     #TODO replace read_input with argument variables or with gui
-    eqs,ys,xs,h,its,stopping_err = read_input() # i for initial and f for final and out for output_interval
-    predictions = predictor(ys,h,xs,eqs)
-    result = corrector(predictions,ys,h,xs,eqs,its,stopping_err)
+    eqs,ys,xs,h,its,xf,stopping_err = read_input() # i for initial and f for final and out for output_interval
+    while(xs[-1]<=xf):
+        print("\nSolve at x = {0}".format(xs[-1]))
+        predictions = predictor(ys,h,xs,eqs)
+        result = corrector(predictions,ys,h,xs,eqs,its,stopping_err)
+        #shifting problem one step
+        xs.append(xs[-1]+h)
+        xs.pop(0)
+        tmp={}
+        for i in range(len(eqs)):
+            tmp['y'+str(i)] = predictions[i]
+        ys.append(tmp)
+        ys.pop(0)
+        print('')
+
 
 
 if __name__ == "__main__":
@@ -98,7 +111,8 @@ Test Case
 y1-x*y0
 1/3*(1+x**2-2*y0)
 .1
-.4
+0
+.7
 1
 2
 1.56
@@ -107,7 +121,7 @@ y1-x*y0
 1.33
 2.42
 .86
-10
+5
 output
 3.31815318 1.05004104
 '''

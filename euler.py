@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 from sympy import integrate,Symbol
 from math import *
 
@@ -50,20 +51,55 @@ def read_input():
     intial_conditions=ys.copy();intial_conditions['x']=xi
     return eqs,ys,xi,xf,dx,xout
 
+def plot_points(points):
+    legends = []
+    for i in range(len(points[0])-1):
+        plt.scatter(points[:,0],points[:,i+1])
+        legends.append('y'+str(i))
+    plt.legend(legends, loc='upper left')
+    plt.show()
+
+
 def main():
     #TODO replace read_input with argument variables or with gui
     eqs,ysi,xi,xf,h,xout = read_input() # i for initial and f for final and out for output_interval
     result_table = [xi] + dict_to_list(ysi)
+    points = []
+    points.append(round_list([xi] + [ ysi['y'+str(j)] for j in range(len(eqs))],5))
     while(1):
         xend = xi + xout
         if(xend > xf):
             xend = xf
         xi = integrator(xi,ysi,h,xend,eqs) # ysi dictionary is passed by ref
         new_row = round_list( [xi] + dict_to_list(ysi),5)
-        print(new_row)
-        result_table.append(new_row)
+        points.append(new_row)
         if(xi>=xf):
             break
+
+    points=np.array(points)
+    print(points)
+    plot_points(points)
         
 if __name__ == "__main__":
     main()
+
+'''
+Test Case one equation
+1
+-2*x**3+12*x**2-20*x+8.5
+1
+0
+4
+.5
+'''
+'''
+Test Case two equation
+2
+-.5*y0
+4-.3*y1-.1*y0
+4
+6
+0
+2
+.5
+'''

@@ -1,3 +1,5 @@
+import numpy as np
+import matplotlib.pyplot as plt
 round_list = lambda some_list,digits : [round(elem,digits) for elem in some_list]
 
 def predictor(ys,h,xs,eqs):
@@ -83,13 +85,26 @@ def read_input():
         its = 10
     return eqs,ys,xs,h,its,xf,stopping_err
 
+
+def plot_points(points):
+    legends = []
+    for i in range(len(points[0])-1):
+        plt.scatter(points[:,0],points[:,i+1])
+        legends.append('y'+str(i))
+    plt.legend(legends, loc='upper left')
+    plt.show()
+
 def main():
     #TODO replace read_input with argument variables or with gui
     eqs,ys,xs,h,its,xf,stopping_err = read_input() # i for initial and f for final and out for output_interval
+    points=[]
+    for i in range(4):
+        points.append(round_list([xs[i]] + [ys[i]['y'+str(j)] for j in range(len(eqs))],5))
     while(xs[-1]<=xf):
         print("\nSolve at x = {0}".format(xs[-1]))
         predictions = predictor(ys,h,xs,eqs)
         result = corrector(predictions,ys,h,xs,eqs,its,stopping_err)
+        points.append(round_list([xs[-1]] + result[-1][:-1],5))
         #shifting problem one step
         xs.append(xs[-1]+h)
         xs.pop(0)
@@ -100,7 +115,10 @@ def main():
         ys.pop(0)
         print('')
 
-
+    print("All pooints x ,y0 ,y1 ...")
+    points=np.array(points)
+    print(points)
+    plot_points(points)
 
 if __name__ == "__main__":
     main()
